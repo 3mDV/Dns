@@ -55,7 +55,7 @@ def filters(text: str) -> None:
     contract_no = None
     tenancy_start_date = None
     tenancy_end_date = None
-    company_name = None
+    company_name = None  # r"Company+\s+Name+\/+Founder)+(\s+.)"
     natinal_address = None
     due_date = None
     end_of_payments = None
