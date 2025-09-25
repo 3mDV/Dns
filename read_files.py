@@ -10,7 +10,7 @@ def read_pdf(pdf_path: str) -> list:
     """read all context from pdf file.
 
     arguments:
-        pdf_file (string) : path of the file.
+        pdf_file (str) : path of the file.
 
     Returns:
         type: return a list content all context.
@@ -29,7 +29,7 @@ def convert_to_excel(date: dict, output_file: str) -> None:
     """convert all data to excel.
     
     Arguments:
-        data (dict | dictionary) : data as dict {key: value}
+        data (dict) : data as dict {key: value}
         output_file (str) : file name to save data
 
     Returns:
