@@ -7,29 +7,44 @@ from bidi.algorithm import get_display
 
 # new structure
 def read_pdf(pdf_path: str) -> None:
-        """
-        
-        """
-        lines = []
-        with open(pdf_path, 'rb') as file:
-     lines = []
-     with open(pdf_path, 'rb') as file:
-         reader = PyPDF2.PdfReader(file)
-         for page in reader.pages:
-             text = page.extract_text()
-             if text:
-                 lines.extend(text.splitlines())
-     return lines
+    """
+
+    """
+    lines = []
+    
+    lines = []
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                lines.extend(text.splitlines())
+    return lines
 
 def convert_to_excel(date: dict, output_file: str) -> None:
-     """
+    """
      
-     """
-     df = pd.DataFrame(date, index=False)
-     df.to_excel(output_file)
-     print("Data is saved ...")
-     return
+    """
+    df = pd.DataFrame(date, index=False)
+    df.to_excel(output_file)
+    print("Data is saved ...")
+    return
      
+def filters(text: str) -> None:
+    """
+
+    """
+    # Values
+    contract_no = None
+    tenancy_start_date = None
+    tenancy_end_date = None
+    company_name = None
+    natinal_address = None
+    due_date = None
+    end_of_payments = None
+    amount = None
+    # extracting pattern
+    
 # import PyPDF2
 # import os
 
