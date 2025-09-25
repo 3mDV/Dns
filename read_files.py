@@ -5,6 +5,21 @@ from openpyxl import load_workbook
 import arabic_reshaper
 from bidi.algorithm import get_display
 
+# new structure
+def read_pdf(pdf_path: str) -> None:
+        """
+        
+        """
+        lines = []
+        with open(pdf_path, 'rb') as file:
+     lines = []
+     with open(pdf_path, 'rb') as file:
+         reader = PyPDF2.PdfReader(file)
+         for page in reader.pages:
+             text = page.extract_text()
+             if text:
+                 lines.extend(text.splitlines())
+     return lines
 # import PyPDF2
 # import os
 
