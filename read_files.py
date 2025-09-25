@@ -20,6 +20,16 @@ def read_pdf(pdf_path: str) -> None:
              if text:
                  lines.extend(text.splitlines())
      return lines
+
+def convert_to_excel(date: dict, output_file: str) -> None:
+     """
+     
+     """
+     df = pd.DataFrame(date, index=False)
+     df.to_excel(output_file)
+     print("Data is saved ...")
+     return
+     
 # import PyPDF2
 # import os
 
