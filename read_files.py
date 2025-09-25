@@ -59,7 +59,7 @@ def filters(text: str) -> None:
     natinal_address = None
     due_date = None
     end_of_payments = None
-    amount = None
+    amount = None # r"^\d+\.\d+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}.*\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}\s+\d+\s*$"
     # extracting pattern
 
     return 
