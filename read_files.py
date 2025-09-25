@@ -6,32 +6,49 @@ import arabic_reshaper
 from bidi.algorithm import get_display
 
 # new structure
-def read_pdf(pdf_path: str) -> None:
-    """
+def read_pdf(pdf_path: str) -> list:
+    """read all context from pdf file.
 
+    arguments:
+        pdf_file (string) : path of the file.
+
+    Returns:
+        type: return a list content all context.
     """
-    lines = []
-    
-    lines = []
+    # extracing contexts from pdf_file
+    context = []
     with open(pdf_path, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
         for page in reader.pages:
             text = page.extract_text()
             if text:
-                lines.extend(text.splitlines())
-    return lines
+                context.extend(text.splitlines())
+    return context
 
 def convert_to_excel(date: dict, output_file: str) -> None:
+    """convert all data to excel.
+    
+    Arguments:
+        data (dict | dictionary) : data as dict {key: value}
+        output_file (str) : file name to save data
+
+    Returns:
+        type: save file 
     """
-     
-    """
+
     df = pd.DataFrame(date, index=False)
     df.to_excel(output_file)
     print("Data is saved ...")
     return
      
 def filters(text: str) -> None:
-    """
+    """filter all text
+
+    Arguments:
+        text (str) : text to find the match
+
+    Returns:
+        type: return filtered text
 
     """
     # Values
@@ -44,6 +61,8 @@ def filters(text: str) -> None:
     end_of_payments = None
     amount = None
     # extracting pattern
+
+    return 
     
 # import PyPDF2
 # import os
