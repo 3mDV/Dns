@@ -4,6 +4,7 @@ import re
 from openpyxl import load_workbook
 import arabic_reshaper
 from bidi.algorithm import get_display
+import PyPDF2
 
 # new structure
 def read_pdf(pdf_path: str) -> list:
@@ -15,7 +16,7 @@ def read_pdf(pdf_path: str) -> list:
     Returns:
         type: return a list content all context.
     """
-    # extracing contexts from pdf_file
+    # extracting contexts from pdf_file
     context = []
     with open(pdf_path, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
@@ -25,7 +26,57 @@ def read_pdf(pdf_path: str) -> list:
                 context.extend(text.splitlines())
     return context
 
-def convert_to_excel(date: dict, output_file: str) -> None:
+
+text = read_pdf(r'C://Users//amric//Desktop//Git//Discord//10988496532.pdf')
+
+def filters(text: list) -> None:
+    """filter all text
+
+    Arguments:
+        text (str) : text to find the match
+
+    Returns:
+        type: return filtered text
+
+    """
+    row = {}
+    for i in range(len(text)):
+        row["National Address"] = text[i].replace("National Address", "") if "National Address" in text[i] else ""
+        # print(text[i])
+        row["Company Name"] = "".join(text[i:i + 2]).split("Organization")[0] if "Company Name" in text[i] else ""
+        row["Contract"] = text[i].split("Contract No")[1].split(":")[0].replace(". ", "") if "Contract No" in text[i] else ""
+        row["Tenancy Start"] = text[i].split("Tenancy Start Date")[1].split(":")[0] if "Tenancy Start Date" in text[i] else ""
+        row["Tenancy End"] = text[i].split("Tenancy End Date")[1].split(":")[0] if "Tenancy End Date" in text[i] else ""
+
+        if "Due Date(AD" in text[i]:
+            start_index = i
+            end_index = i + 15
+
+
+            p = r"\/n*([0-9]\.00)({4}\D+-\D{2}+-\D+{2})\s+{4}\D+-\D{2}+-\D+{2})\s+."
+
+            # if "" in text[i]:
+            #     print(text[:])
+            # print(company_name)
+            # row["National Address"] = text[i].replace("National Address", "")
+            # national_address = re.search(r"National Address\.+(\d{5})\.+(\d{4})$", text[i], re.IGNORECASE)
+            # print(national_address)
+    # Values
+    contract_no = None
+    tenancy_start_date = None
+    tenancy_end_date = None
+    company_name = None # re.search(r"Company+\s+Name+\/+Founder\+(\s+.)", text[0], re.IGNORECASE)  # r"Company+\s+Name+\/+Founder)+(\s+.)"
+    # national_pattern = None # "National Address\s*،\s*(\d{5})\s*،\s*([\u0600-\u06FF\s]+?)\s*،\s*(\d{4})\s*،\s*([\u0600-\u06FF\s]+?)\s*،\s*(\d{4})"
+    # national_address = None
+    due_date = None
+    end_of_payments = None
+    amount = None # r"^\d+\.\d+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}.*\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}\s+\d+\s*$"
+    # extracting pattern
+
+    return
+
+print(filters(text))
+def convert_to_excel(data: dict, output_file: str) -> None:
     """convert all data to excel.
     
     Arguments:
@@ -36,34 +87,13 @@ def convert_to_excel(date: dict, output_file: str) -> None:
         type: save file 
     """
 
-    df = pd.DataFrame(date, index=False)
+    df = pd.DataFrame(data=data)
     df.to_excel(output_file)
     print("Data is saved ...")
     return
-     
-def filters(text: str) -> None:
-    """filter all text
 
-    Arguments:
-        text (str) : text to find the match
 
-    Returns:
-        type: return filtered text
 
-    """
-    # Values
-    contract_no = None
-    tenancy_start_date = None
-    tenancy_end_date = None
-    company_name = None  # r"Company+\s+Name+\/+Founder)+(\s+.)"
-    natinal_address = None
-    due_date = None
-    end_of_payments = None
-    amount = None # r"^\d+\.\d+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}.*\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}\s+\d+\s*$"
-    # extracting pattern
-
-    return 
-    
 # import PyPDF2
 # import os
 
@@ -117,7 +147,7 @@ def filters(text: str) -> None:
 #                 continue
 
 #             print(f"📄 Page {page_number+1} text found.")
-        
+
 #             row = {}
 
 #             # Contract No
@@ -149,7 +179,7 @@ def filters(text: str) -> None:
 #             if match_address:
 #                 row["National Address"] = reshape_arabic(match_address.group(1).strip())
 #                 print(f"🔹 National Address: {row['National Address']}")
-            
+
 #             match_address = re.search(r"National\s*Address\s*[:\-]?\s*(.+)", text, re.IGNORECASE)
 #             if match_address:
 #                 row["National Address"] = reshape_arabic(match_address.group(1).strip())
@@ -201,133 +231,133 @@ def filters(text: str) -> None:
 # output_data = read_pdf_tenant_info(pdf_file)
 # # write(output_data, excel_file)
 
-import pdfplumber
-import pandas as pd
-import re
-from openpyxl import load_workbook
-import arabic_reshaper
-from bidi.algorithm import get_display
+# import pdfplumber
+# import pandas as pd
+# import re
+# from openpyxl import load_workbook
+# import arabic_reshaper
+# from bidi.algorithm import get_display
 
-def reshape_arabic(text):
-    if not text:
-        return ""
-    try:
-        reshaped = arabic_reshaper.reshape(text)
-        return get_display(reshaped)
-    except Exception:
-        return text
+# def reshape_arabic(text):
+#     if not text:
+#         return ""
+#     try:
+#         reshaped = arabic_reshaper.reshape(text)
+#         return get_display(reshaped)
+#     except Exception:
+#         return text
 
-def read_pdf_tenant_info(pdf_path):
-    records = []
+# def read_pdf_tenant_info(pdf_path):
+#     records = []
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page_number, page in enumerate(pdf.pages):
-            text = page.extract_text()
-            if not text:
-                continue
+#     with pdfplumber.open(pdf_path) as pdf:
+#         for page_number, page in enumerate(pdf.pages):
+#             text = page.extract_text()
+#             if not text:
+#                 continue
 
-            text = reshape_arabic(text)
-            row = {
-                "Contract No": "",
-                "Tenancy Start Date": "",
-                "Tenancy End Date": "",
-                "Company name/Founder": "",
-                "National Address": "",
-                "Due Date(AD)": "",
-                "End of payment deadline(AD)": "",
-                "Amount": ""
-            }
+#             text = reshape_arabic(text)
+#             row = {
+#                 "Contract No": "",
+#                 "Tenancy Start Date": "",
+#                 "Tenancy End Date": "",
+#                 "Company name/Founder": "",
+#                 "National Address": "",
+#                 "Due Date(AD)": "",
+#                 "End of payment deadline(AD)": "",
+#                 "Amount": ""
+#             }
 
-            # Contract No → قراءة الرقم الكامل فقط
-            match_contract = re.search(r"Contract\s*No\.?\s*[:\-]?\s*([\d\s\/\-]+)", text, re.IGNORECASE)
-            if match_contract:
-                row["Contract No"] = match_contract.group(1).strip()
+#             # Contract No → قراءة الرقم الكامل فقط
+#             match_contract = re.search(r"Contract\s*No\.?\s*[:\-]?\s*([\d\s\/\-]+)", text, re.IGNORECASE)
+#             if match_contract:
+#                 row["Contract No"] = match_contract.group(1).strip()
 
-            # Tenancy Start Date
-            match_start = re.search(
-                r"Tenancy\s*Start\s*Date\s*[:\-]?\s*([\d]{2,4}[\/\-][\d]{1,2}[\/\-][\d]{2,4})",
-                text, re.IGNORECASE
-            )
-            if match_start:
-                row["Tenancy Start Date"] = match_start.group(1).strip()
+#             # Tenancy Start Date
+#             match_start = re.search(
+#                 r"Tenancy\s*Start\s*Date\s*[:\-]?\s*([\d]{2,4}[\/\-][\d]{1,2}[\/\-][\d]{2,4})",
+#                 text, re.IGNORECASE
+#             )
+#             if match_start:
+#                 row["Tenancy Start Date"] = match_start.group(1).strip()
 
-            # Tenancy End Date
-            match_end = re.search(
-                r"Tenancy\s*End\s*Date\s*[:\-]?\s*([\d]{2,4}[\/\-][\d]{1,2}[\/\-][\d]{2,4})",
-                text, re.IGNORECASE
-            )
-            if match_end:
-                row["Tenancy End Date"] = match_end.group(1).strip()
+#             # Tenancy End Date
+#             match_end = re.search(
+#                 r"Tenancy\s*End\s*Date\s*[:\-]?\s*([\d]{2,4}[\/\-][\d]{1,2}[\/\-][\d]{2,4})",
+#                 text, re.IGNORECASE
+#             )
+#             if match_end:
+#                 row["Tenancy End Date"] = match_end.group(1).strip()
 
-            # Company name/Founder
-            match_tenant = re.search(
-                r"Company\s*[\r\n]+\s*name/Founder\s*[:\-]?\s*(.+)",
-                text, re.IGNORECASE | re.DOTALL
-            )
-            if match_tenant:
-                tenant_text = match_tenant.group(1).strip()
-                tenant_lines = tenant_text.split("\n")[:3]
-                tenant_cleaned = " ".join(line.strip() for line in tenant_lines if line.strip())
-                row["Company name/Founder"] = tenant_cleaned
+#             # Company name/Founder
+#             match_tenant = re.search(
+#                 r"Company\s*[\r\n]+\s*name/Founder\s*[:\-]?\s*(.+)",
+#                 text, re.IGNORECASE | re.DOTALL
+#             )
+#             if match_tenant:
+#                 tenant_text = match_tenant.group(1).strip()
+#                 tenant_lines = tenant_text.split("\n")[:3]
+#                 tenant_cleaned = " ".join(line.strip() for line in tenant_lines if line.strip())
+#                 row["Company name/Founder"] = tenant_cleaned
 
-            # National Address → فقط السطر الأول بدون نص إضافي
-            match_address = re.search(r"National\s*Address\s*[:\-]?\s*(.+)", text, re.IGNORECASE | re.DOTALL)
-            if match_address:
-                address_text = match_address.group(1).strip()
-                row["National Address"] = address_text.split("\n")[0].strip()
+#             # National Address → فقط السطر الأول بدون نص إضافي
+#             match_address = re.search(r"National\s*Address\s*[:\-]?\s*(.+)", text, re.IGNORECASE | re.DOTALL)
+#             if match_address:
+#                 address_text = match_address.group(1).strip()
+#                 row["National Address"] = address_text.split("\n")[0].strip()
 
-            # قراءة جدول الدفعات من الصفحة الثالثة
-            if page_number == 2:
-                tables = page.extract_tables()
-                if len(tables) >= 2:
-                    payment_table = tables[1]
-                    headers = [reshape_arabic(str(h)) for h in payment_table[0]]
+#             # قراءة جدول الدفعات من الصفحة الثالثة
+#             if page_number == 2:
+#                 tables = page.extract_tables()
+#                 if len(tables) >= 2:
+#                     payment_table = tables[1]
+#                     headers = [reshape_arabic(str(h)) for h in payment_table[0]]
 
-                    # إيجاد مواقع الأعمدة المطلوبة
-                    due_date_idx = next((i for i, h in enumerate(headers) if "Due Date(AD)" in h), None)
-                    end_deadline_idx = next((i for i, h in enumerate(headers) if "End of payment deadline(AD)" in h), None)
-                    amount_idx = next((i for i, h in enumerate(headers) if "Amount" in h), None)
+#                     # إيجاد مواقع الأعمدة المطلوبة
+#                     due_date_idx = next((i for i, h in enumerate(headers) if "Due Date(AD)" in h), None)
+#                     end_deadline_idx = next((i for i, h in enumerate(headers) if "End of payment deadline(AD)" in h), None)
+#                     amount_idx = next((i for i, h in enumerate(headers) if "Amount" in h), None)
 
-                    if due_date_idx is not None and end_deadline_idx is not None and amount_idx is not None:
-                        for payment_row in payment_table[1:]:
-                            payment_row = [reshape_arabic(str(cell)) if cell else "" for cell in payment_row]
-                            row_copy = row.copy()
-                            row_copy["Due Date(AD)"] = payment_row[due_date_idx]
-                            row_copy["End of payment deadline(AD)"] = payment_row[end_deadline_idx]
-                            row_copy["Amount"] = payment_row[amount_idx]
-                            records.append(row_copy)
-                continue
-
-
-            if any(value for value in row.values()):
-                records.append(row)
-
-        return records
+#                     if due_date_idx is not None and end_deadline_idx is not None and amount_idx is not None:
+#                         for payment_row in payment_table[1:]:
+#                             payment_row = [reshape_arabic(str(cell)) if cell else "" for cell in payment_row]
+#                             row_copy = row.copy()
+#                             row_copy["Due Date(AD)"] = payment_row[due_date_idx]
+#                             row_copy["End of payment deadline(AD)"] = payment_row[end_deadline_idx]
+#                             row_copy["Amount"] = payment_row[amount_idx]
+#                             records.append(row_copy)
+#                 continue
 
 
-pdf_file = r"C:\Users\amric\Desktop\Git\Discord\10988496532.pdf"
-excel_file = r"C:\Users\amric\Desktop\Git\Discord\10988496532_output.xlsx"
+#             if any(value for value in row.values()):
+#                 records.append(row)
 
-output_data = read_pdf_tenant_info(pdf_file)
+#         return records
 
-if output_data:
-    df = pd.DataFrame(output_data, columns=[
-        "Contract No", "Tenancy Start Date", "Tenancy End Date",
-        "Company name/Founder", "National Address",
-        "Due Date(AD)", "End of payment deadline(AD)", "Amount"
-    ])
-    df.to_excel(excel_file, index=False)
 
-    wb = load_workbook(excel_file)
-    ws = wb.active
-    for col in ws.columns:
-        max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
-        ws.column_dimensions[col[0].column_letter].width = max_length + 5
-    wb.save(excel_file)
+# pdf_file = r"C:\Users\amric\Desktop\Git\Discord\10988496532.pdf"
+# excel_file = r"C:\Users\amric\Desktop\Git\Discord\10988496532_output.xlsx"
 
-    print(f"✅ تم استخراج البيانات وحفظها في {excel_file}")
-else:
-    print("❌ لم يتم العثور على بيانات.")
+# output_data = read_pdf_tenant_info(pdf_file)
+
+# if output_data:
+#     df = pd.DataFrame(output_data, columns=[
+#         "Contract No", "Tenancy Start Date", "Tenancy End Date",
+#         "Company name/Founder", "National Address",
+#         "Due Date(AD)", "End of payment deadline(AD)", "Amount"
+#     ])
+#     df.to_excel(excel_file, index=False)
+
+#     wb = load_workbook(excel_file)
+#     ws = wb.active
+#     for col in ws.columns:
+#         max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+#         ws.column_dimensions[col[0].column_letter].width = max_length + 5
+#     wb.save(excel_file)
+
+#     print(f"✅ تم استخراج البيانات وحفظها في {excel_file}")
+# else:
+#     print("❌ لم يتم العثور على بيانات.")
 
 # if __name__ == "__main__":
 #     pdf_file = r"C:\Users\amric\Desktop\Git\Discord\10988496532.pdf"
