@@ -2,6 +2,8 @@ import re
 import PyPDF2
 import openpyxl
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, Alignment
+
 
 # new structure
 def read_pdf(path: str) -> list:
@@ -61,11 +63,14 @@ def filters(text: list[str]) -> dict:
             # add to data row
             row["Tenancy End Date"] = tenancy_end_date
         # Company Name
-        if "Company Name" in text[i]:
+        if "name/Founder" in text[i]:
             # filter company name
             company_name = "".join(text[i:i + 2]).split("Organization")[0]
+            # filter only company name
+            company_name = company_name.rsplit(" ", 1)[0].replace("name/Founder", "")[:-3]
             # add to data row
             row["Company Name"] = company_name
+
         # National Address
         if "National Address" in text[i]:
             # filter national address
@@ -83,18 +88,13 @@ def filters(text: list[str]) -> dict:
             due_date.append(payments[5])
             end_of_payments.append(payments[4])
             amount.append(payments[0])
-    # filter last 3 value in Due Date
-    due_date = due_date[-3:]
-    # add last 3 value to data row
-    row["Due Date"] = due_date[-3:]
-    # filter last 3 value in Due Date
-    end_of_payments = end_of_payments[-3:]
-    # add last 3 value to data row
-    row["End of Payments"] = end_of_payments[-3:]
-    # filter last 3 value in Due Date
-    amount = amount[-3:]
-    # add last 3 value to data row
-    row["Amount"] = amount[-3:]
+
+    # add values to data row
+    row["Due Date"] = due_date[:]
+    # add values to data row
+    row["End of Payments"] = end_of_payments[:]
+    # add values to data row
+    row["Amount"] = amount[:]
 
     # return contract_no, tenancy_start_date, tenancy_end_date, company_name, national_address, due_date
     return row
@@ -111,18 +111,19 @@ def convert_to_excel(data, output_file: str) -> None:
 
     # Write general contract info at the top
     ws.append(list(data.keys())[:])
-    ws.append(list(data.values())[:4])
+    ws.append(list(data.values())[:5])
     counter = 2
     for due, end, amount in zip(data['Due Date'], data['End of Payments'], data['Amount']):
-        ws[f"E{counter}"] = due
-        ws[f"F{counter}"] = end
-        ws[f"G{counter}"] = amount
+        ws[f"F{counter}"] = due
+        ws[f"G{counter}"] = end
+        ws[f"H{counter}"] = amount
         counter += 1
 
     column_widths = {}
     for row in ws.iter_rows():
         for cell in row:
             if cell.value:
+
                 # Get column index and convert to letter
                 column_letter = get_column_letter(cell.column)
                 # Calculate length of the value
@@ -142,12 +143,13 @@ def convert_to_excel(data, output_file: str) -> None:
 
 
 # path of execute file
-pdf_path =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
+pdf_path =  r"C:\Users\amric\Desktop\Git\Discord\10988496532.pdf"
+# pdf_path =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
 # test read_pdf method
 extracting = read_pdf(pdf_path)
 # test filters method
 pdf_data = filters(extracting)
 # path of Excel file
-excel_path = r"../Dns/10988496532.xlsx"
+excel_path = r"10988496532.xlsx"
 # test convert_to_excel method
 convert_to_excel(pdf_data, excel_path)
