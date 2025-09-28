@@ -82,7 +82,7 @@ def filters(text: list[str]) -> dict:
             # filter only company name
             company_name = company_name.rsplit(" ", 1)[0].replace("name/Founder", "")[:-3]
             # add to data row
-            row["Company Name"] = fix_arabic(company_name)
+            row["Founder Name"] = fix_arabic(company_name)
 
         # National Address
         if "National Address" in text[i]:
