@@ -1,8 +1,22 @@
 import re
 import PyPDF2
+import arabic_reshaper
 import openpyxl
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment
+
+
+def fix_arabic(text: str) -> str:
+    """
+    Fix arabic fonts
+    :param text:
+    :return: version of Arabic text
+    """
+    try:
+        reshaped = arabic_reshaper.reshape(text)
+        return arabic_reshaper.reshape(reshaped)
+    except Exception as error:
+        return text
 
 
 # new structure
@@ -69,7 +83,7 @@ def filters(text: list[str]) -> dict:
             # filter only company name
             company_name = company_name.rsplit(" ", 1)[0].replace("name/Founder", "")[:-3]
             # add to data row
-            row["Company Name"] = company_name
+            row["Company Name"] = fix_arabic(company_name)
 
         # National Address
         if "National Address" in text[i]:
@@ -108,22 +122,31 @@ def convert_to_excel(data, output_file: str) -> None:
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Contract Data"
+    # Set worksheet to right-to-left for Arabic support
+    ws.sheet_view.rightToLeft = True
 
     # Write general contract info at the top
     ws.append(list(data.keys())[:])
     ws.append(list(data.values())[:5])
+    # Set alignment for header and info rows
+    for row in ws.iter_rows(min_row=1, max_row=2):
+        for cell in row:
+            cell.alignment = Alignment(horizontal='right', readingOrder=2)
     counter = 2
     for due, end, amount in zip(data['Due Date'], data['End of Payments'], data['Amount']):
         ws[f"F{counter}"] = due
         ws[f"G{counter}"] = end
         ws[f"H{counter}"] = amount
+        # Set alignment for these cells as well
+        ws[f"F{counter}"].alignment = Alignment(horizontal='right', readingOrder=2)
+        ws[f"G{counter}"].alignment = Alignment(horizontal='right', readingOrder=2)
+        ws[f"H{counter}"].alignment = Alignment(horizontal='right', readingOrder=2)
         counter += 1
 
     column_widths = {}
     for row in ws.iter_rows():
         for cell in row:
             if cell.value:
-
                 # Get column index and convert to letter
                 column_letter = get_column_letter(cell.column)
                 # Calculate length of the value
@@ -143,8 +166,7 @@ def convert_to_excel(data, output_file: str) -> None:
 
 
 # path of execute file
-pdf_path =  r"C:\Users\amric\Desktop\Git\Discord\10988496532.pdf"
-# pdf_path =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
+pdf_path =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
 # test read_pdf method
 extracting = read_pdf(pdf_path)
 # test filters method
@@ -153,3 +175,4 @@ pdf_data = filters(extracting)
 excel_path = r"10988496532.xlsx"
 # test convert_to_excel method
 convert_to_excel(pdf_data, excel_path)
+
