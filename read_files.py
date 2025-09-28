@@ -124,7 +124,7 @@ def convert_to_excel(data, output_file: str) -> None:
 
     # Write general contract info at the top
     ws.append(list(data.keys())[:])
-    ws.append(list(data.values())[:4])
+    ws.append(list(data.values())[:5])
     counter = 2
     for due, end, amount in zip(data['Due Date'], data['End of Payments'], data['Amount']):
         ws[f"F{counter}"] = due
