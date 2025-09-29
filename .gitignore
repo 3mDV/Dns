@@ -1,7 +1,5 @@
 # Ignore all configure file for dns #
 #####################################
-A
-AAAA
-ANAME
-CNAME
-TXT
+A*
+C*
+T*
