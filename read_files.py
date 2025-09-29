@@ -8,7 +8,7 @@ from openpyxl.utils import get_column_letter
 def fix_arabic(text: str) -> str:
     """
     Fix arabic fonts
-    :param text:
+    :param text (str) : text to fixed
     :return: version of Arabic text
     """
     try:
@@ -19,14 +19,12 @@ def fix_arabic(text: str) -> str:
 
 
 # new structure
-def read_pdf(path: str) -> list:
+def read_context(path: str) -> list:
     """read all context from pdf file.
-
-    arguments:
-        pdf_file (str) : path of the file.
-
+    Arguments:
+        :param pdf_file (str) : path of the file.
     Returns:
-        type: return a list content all context.
+        :return : return a list content all context.
     """
     # extracting contexts from pdf_file
     context = []
@@ -41,13 +39,10 @@ def read_pdf(path: str) -> list:
 
 def filters(text: list[str]) -> dict:
     """filter all text
-
     Arguments:
-        text (str) : text to find the match
-
+        :param text (str) : text to find the match
     Returns:
-        type: return filtered text
-
+        :return : return filtered text
     """
     # Values
     due_date:list = []
@@ -79,11 +74,11 @@ def filters(text: list[str]) -> dict:
         if "name/Founder" in text[i]:
             # filter company name
             company_name = "".join(text[i:i + 2]).split("Organization")[0]
-            # filter only company name
+            # filter only company name without "name/Founder"
             company_name = company_name.rsplit(" ", 1)[0].replace("name/Founder", "")[:-3]
-            # add to data row
+            # add to data row with fix Arabic font
             row["Tenancy Name"] = fix_arabic(company_name)
-
+            
         # National Address
         if "National Address" in text[i]:
             # filter national address
@@ -93,13 +88,17 @@ def filters(text: list[str]) -> dict:
 
         # matches
         pattern = r"^\d+\.\d+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}.*\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}\s+\d+\s*$"
+        # match all text with pattern 
         payments = re.findall(pattern, text[i])
         # Payments schedular
         if payments:
             # split data
             payments = "".join(payments).split(" ")
+            # add all due date of contract as list to filter
             due_date.append(payments[5])
+            # add all end of payments of contract as list to filter
             end_of_payments.append(payments[4])
+            # add all amounts of contract as list to filter
             amount.append(payments[0])
 
     # add values to data row
@@ -108,15 +107,16 @@ def filters(text: list[str]) -> dict:
     row["End of Payments"] = end_of_payments[:]
     # add values to data row
     row["Amount"] = amount[:]
-
-    # return contract_no, tenancy_start_date, tenancy_end_date, company_name, national_address, due_date
+    
     return row
 
 
-def convert_to_excel(data, output_file: str) -> None:
+def write_to_excel(data, output_file: str) -> None:
     """convert all data to excel.
-
     Arguments:
+    :param data (dict) : data to write in DB
+    :param output_file (str) : file name to save DB
+    :return : save file or append data to execute
     """
     wb = Workbook()
     ws = wb.active
@@ -125,13 +125,13 @@ def convert_to_excel(data, output_file: str) -> None:
     # Write general contract info at the top
     ws.append(list(data.keys())[:])
     ws.append(list(data.values())[:5])
+    # counter for multipule data in rows
     counter = 2
     for due, end, amount in zip(data['Due Date'], data['End of Payments'], data['Amount']):
         ws[f"F{counter}"] = due
         ws[f"G{counter}"] = end
         ws[f"H{counter}"] = amount
         counter += 1
-
 
     column_widths = {}
     for row in ws.iter_rows():
@@ -152,17 +152,18 @@ def convert_to_excel(data, output_file: str) -> None:
     for col_letter, col_width in column_widths.items():
         ws.column_dimensions[col_letter].width = col_width + 2
 
+    # file name to save DB
     wb.save(output_file)
 
-
-# path of execute file
-pdf_path =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
-# test read_pdf method
-extracting = read_pdf(pdf_path)
-# test filters method
-pdf_data = filters(extracting)
-# path of Excel file
-excel_path = r"10988496532.xlsx"
-# test convert_to_excel method
-convert_to_excel(pdf_data, excel_path)
+if __name__=="__main__":
+    # path of execute file to read
+    pdf_context =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
+    # use read_context method
+    extracting = read_context(pdf_context)
+    # use filters method
+    pdf_data = filters(extracting)
+    # File name of Excel save in executed floder
+    excel_path = r"10988496532.xlsx"
+    # use convert_to_excel method to write and save file
+    convert_to_excel(pdf_data, excel_path)
 
