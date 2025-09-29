@@ -155,6 +155,20 @@ def write_to_excel(data, output_file: str) -> None:
     # file name to save DB
     wb.save(output_file)
 
+def filter_tenancy_name(text : str) -> str:
+    """filter tenancy name (indivdual | company name)
+    
+    """
+    pass
+
+
+def track_last_write(db_file : str) -> None:
+    """find last line in excel sheet
+    
+    """
+    pass
+
+
 if __name__=="__main__":
     # path of execute file to read
     pdf_context =  r"C:\Users\ream8\Desktop\Project\10988496532.pdf"
@@ -165,5 +179,5 @@ if __name__=="__main__":
     # File name of Excel save in executed floder
     excel_path = r"10988496532.xlsx"
     # use convert_to_excel method to write and save file
-    convert_to_excel(pdf_data, excel_path)
+    write_to_excel(pdf_data, excel_path)
 
