@@ -3,7 +3,18 @@ import PyPDF2
 import arabic_reshaper
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
+import configparser
 
+
+def create_db() -> None:
+    config = configparser.ConfigParser()
+
+    # Add sections and key-value pairs
+    config['default'] = {'modified': True, 'counter': 2}
+
+    # Write the configuration to a file
+    with open('config.ini', 'a') as configfile:
+        config.write(configfile)
 
 def fix_arabic(text: str) -> str:
     """
