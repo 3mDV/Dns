@@ -15,6 +15,7 @@ except FileNotFoundError:
 except Exception as e:
     print(f"there was an error: {e}")
 
+
 # ✅ إصلاح الكتابة العربية
 def fix_arabic(text: str) -> str:
     try:
@@ -35,8 +36,88 @@ def read_pdf(path: str) -> list:
     return context
 
 
-# ✅ استخراج البيانات المطلوبة من النص
-def filters(text: list[str]) -> dict:
+# ✅ استخراج البيانات من التنسيق الجديد (عقود إيجار سعودية)
+def filters_new_format(text: list[str]) -> dict:
+    row = {}
+    due_date, end_of_payments, amount = [], [], []
+
+    full_text = " ".join(text)
+
+    # استخراج رقم العقد
+    contract_match = re.search(r'Contract No[.\s:]+(\d+(?:/\d+-\d+)?)', full_text)
+    if contract_match:
+        row["Contract No"] = contract_match.group(1).strip()
+
+    # استخراج تاريخ بداية الإيجار
+    start_date_match = re.search(r'Tenancy Start Date[:\s]+(\d{4}-\d{2}-\d{2})', full_text)
+    if start_date_match:
+        row["Tenancy Start Date"] = start_date_match.group(1)
+
+    # استخراج تاريخ نهاية الإيجار
+    end_date_match = re.search(r'Tenancy End Date[:\s]+(\d{4}-\d{2}-\d{2})', full_text)
+    if end_date_match:
+        row["Tenancy End Date"] = end_date_match.group(1)
+
+    # استخراج اسم المستأجر (Tenant Name)
+    for i, line in enumerate(text):
+        if "Tenant Data" in line or "اﻟﻤﺴﺘﺄﺟﺮ ﺑﻴﺎﻧﺎت" in line:
+            # البحث في السطور التالية عن Name
+            for j in range(i, min(i + 5, len(text))):
+                if "Name" in text[j] and "اﻻﺳﻢ" in text[j]:
+                    name_line = text[j]
+                    # استخراج الاسم بين Name و Nationality
+                    name_match = re.search(r'Name\s+(.+?)\s+Nationality', name_line)
+                    if name_match:
+                        tenant_name = name_match.group(1).strip()
+                        tenant_name = re.sub(r'اﻻﺳﻢ\s*:\s*', '', tenant_name)
+                        row["Tenancy Name"] = fix_arabic(tenant_name)
+                        break
+
+    # استخراج العنوان الوطني
+    for i, line in enumerate(text):
+        if "National Address" in line and "اﻟﻮﻃﻨﻲ اﻟﻌﻨﻮان" in line:
+            # استخراج العنوان بعد National Address
+            addr_match = re.search(r'National Address\s+(.+?)\s+(?:Property Usage|Tenant Representative)', line)
+            if not addr_match and i + 1 < len(text):
+                addr_match = re.search(r'National Address\s+(.+)', line)
+            if addr_match:
+                address = addr_match.group(1).strip()
+                address = re.sub(r'اﻟﻮﻃﻨﻲ اﻟﻌﻨﻮان\s*:\s*', '', address)
+                row["National Address"] = fix_arabic(address)
+                break
+
+    # استخراج اسم المؤجر (Lessor Name)
+    for i, line in enumerate(text):
+        if "Lessor Data" in line or "اﻟﻤﺆّﺟﺮ ﺑﻴﺎﻧﺎت" in line:
+            for j in range(i, min(i + 5, len(text))):
+                if "Name" in text[j] and "اﻻﺳﻢ" in text[j]:
+                    lessor_line = text[j]
+                    lessor_match = re.search(r'Name\s+(.+?)\s+Nationality', lessor_line)
+                    if lessor_match:
+                        lessor_name = lessor_match.group(1).strip()
+                        lessor_name = re.sub(r'اﻻﺳﻢ\s*:\s*', '', lessor_name)
+                        row["Lessor Name"] = fix_arabic(lessor_name)
+                        break
+
+    # استخراج جدول الدفعات (Rent Payments Schedule)
+    # البحث عن جدول الدفعات بالنمط: Amount | Date(AH) | Date(AD) | Days | Date(AD) | Date(AH) | No
+    payment_pattern = r'(\d+\.\d+)\s+\d{4}-\d{2}-\d{2}\s+(\d{4}-\d{2}-\d{2})\s+\w+\s+\d+\s+(\d{4}-\d{2}-\d{2})'
+    for line in text:
+        matches = re.findall(payment_pattern, line)
+        for match in matches:
+            amount.append(match[0])
+            end_of_payments.append(match[1])
+            due_date.append(match[2])
+
+    row["Due Date"] = due_date
+    row["End of Payments"] = end_of_payments
+    row["Amount"] = amount
+
+    return row
+
+
+# ✅ استخراج البيانات من التنسيق القديم (للحفاظ على التوافقية)
+def filters_old_format(text: list[str]) -> dict:
     due_date, end_of_payments, amount = [], [], []
     row = {}
 
@@ -71,7 +152,6 @@ def filters(text: list[str]) -> dict:
             except Exception:
                 row["Lessor Name"] = ""
 
-        # استخراج جدول الدفعات
         pattern = r"^\d+\.\d+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}.*\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}\s+\d+\s*$"
         payments = re.findall(pattern, text[i])
         if payments:
@@ -84,6 +164,19 @@ def filters(text: list[str]) -> dict:
     row["End of Payments"] = end_of_payments[:]
     row["Amount"] = amount[:]
     return row
+
+
+# ✅ دالة موحدة تحدد التنسيق تلقائياً
+def filters(text: list[str]) -> dict:
+    full_text = " ".join(text)
+
+    # التحقق من نوع التنسيق
+    if "Tenant Data" in full_text and "Lessor Data" in full_text:
+        # التنسيق الجديد (عقد إيجار سعودي)
+        return filters_new_format(text)
+    else:
+        # التنسيق القديم
+        return filters_old_format(text)
 
 
 # ✅ إضافة البيانات إلى ملف Excel (أو إنشاءه إن لم يوجد)
@@ -119,7 +212,7 @@ def convert_to_excel(data, output_file: str) -> None:
         data.get("Lessor Name", ""),
         "", "", ""
     ])
-row_index = start_row + 1
+    row_index = start_row + 1
     for due, end, amount in zip(data.get('Due Date', []),
                                 data.get('End of Payments', []),
                                 data.get('Amount', [])):
@@ -129,6 +222,7 @@ row_index = start_row + 1
         row_index += 1
     ws.append([""] * 9)
     ws.append([""] * 9)
+
     column_widths = {}
     for row in ws.iter_rows():
         for cell in row:
@@ -146,9 +240,9 @@ row_index = start_row + 1
     print(f"✅ Added to Excel: {output_file}")
 
 
-
-pdf_folder = r"C:\Users\ream8\Desktop\project\PDFReaderProject"
-excel_path = os.path.join(pdf_folder, "Tenant_Info.xlsx")
+# ✅ البرنامج الرئيسي
+pdf_folder = r"C:\Users\ream8\Desktop\PDF-2ReaderProject"
+excel_path = os.path.join(pdf_folder, "Tenant_Info2  .xlsx")
 
 pdf_files = glob.glob(os.path.join(pdf_folder, "*.pdf"))
 print(f"Found {len(pdf_files)} PDF files.")
